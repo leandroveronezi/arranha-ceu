@@ -64,8 +64,8 @@ function facDraw(k, fo, po = {}) {
 function transportDraw(k, tier = 1) {
   const t = TRANSPORT[k];
   if (t.mode === 'elev' || t.carlift) {
-    const w = t.w * U * 3 + 16, h = FH * 5, s = {x: 0, w: t.w, lo: 0, hi: 3, k, carlift: !!t.carlift, cars: [{y: 1.5, dir: 1, pax: [1, 2], dwell: 0, full: true, id: 1}, {y: 2.6, dir: -1, pax: [], dwell: 0, full: true, id: 3}, {y: 0, dir: 0, pax: [], dwell: 1, id: 4}], q: {}, off: {}};
-    return {w: t.w * U + 8, h, draw(c, tm) { c.save(); c.translate(4, FH * 4); s.cars[0].y = 1.5 + Math.sin(tm * .8) * 1.3; s.cars[1].y = 2 - Math.sin(tm * .6) * 1.5; const cam = {z: 1};
+    const h = FH * 6, s = {x: 0, w: t.w, lo: 0, hi: 3, k, carlift: !!t.carlift, cars: [{y: 1.5, dir: 1, pax: [1, 2], dwell: 0, full: true, id: 1}, {y: 2.6, dir: -1, pax: [], dwell: 0, full: true, id: 3}, {y: 0, dir: 0, pax: [], dwell: 1, id: 4}], q: {}, off: {}};
+    return {w: t.w * U + 8, h, draw(c, tm) { c.save(); c.translate(4, FH * 5); s.cars[0].y = 1.5 + Math.sin(tm * .8) * 1.3; s.cars[1].y = 2 - Math.sin(tm * .6) * 1.5; const cam = {z: 1};
       paintShaft(c, s, cam, false); paintShaftDoors(c, s, [0, 1, 2, 3], cam); s.cars.forEach((car, i) => paintCar(c, s, car, i, 3)); paintMachineRoom(c, s, tm, true, cam); paintShaftPit(c, s, cam); c.restore(); }};
   }
   return {w: t.w * U + 8, h: FH + 4, draw(c, tm) { c.save(); c.translate(4, 0); paintStairs(c, {x: 0, w: t.w, L: -1 + 0, k}, tm, false, tier); c.restore(); }};
