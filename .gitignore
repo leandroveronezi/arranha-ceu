@@ -1,0 +1,27 @@
+# Referências de terceiros (sprites do SimTower, só para consulta: não distribuir)
+temp/
+
+# Saves exportados pelo jogo (botão Exportar) e arquivos locais de teste
+arranha-ceu.json
+*.save.json
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Prévias geradas à mão (screenshots do Chrome headless)
+out.png
+*.screenshot.png
+
+# Editor / sistema
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
+
+# Notas e relatórios internos de trabalho (ficam só na máquina)
+MELHORIAS-MINIMAPA-HUMOR.md
+RELATORIO-*.md

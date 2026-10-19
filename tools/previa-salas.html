@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Prévia das salas</title>
+<style>body{margin:8px;background:#151a28;color:#ddd;font:12px system-ui}canvas{display:block;margin-bottom:6px}</style>
+<!-- Mostra todos os modelos de sala (tipo × modelo × faixa de preço). Abra direto no navegador: tools/previa-salas.html?noite=1 -->
+<body>
+<script src="../js/data.js"></script><script src="../js/game.js"></script><script src="../js/art.js"></script><script src="../js/art-salas.js"></script>
+<script>
+const night = location.search.includes('noite'), S = 2, GAP = 6;
+const priced = ['office', 'officeEx', 'kitnet', 'condo', 'penthouse', 'single', 'twin', 'suite', 'shop'], plain = ['fastfood', 'restaurant', 'bar'];
+const NV = {office: 6, officeEx: 6, kitnet: 6, condo: 6, penthouse: 6, shop: 6, fastfood: 6, restaurant: 6, bar: 6};
+const idFor = (v, n) => { for (let i = 1; ; i++) if (vr({id: i}, n) === v) return i; };
+function row(k, cells) {
+  const d = FAC[k], w = d.w * U, h = d.h * FH, cv = document.createElement('canvas');
+  cv.width = (w + GAP) * cells.length * S + 90; cv.height = (h + 12) * S;
+  const c = cv.getContext('2d'); c.scale(S, S);
+  c.fillStyle = '#ddd'; c.font = '10px system-ui'; c.fillText(d.label, 2, 20);
+  cells.forEach(([f, lbl], i) => {
+    const x = 45 + i * (w + GAP), y = 10;
+    c.save(); c.translate(x, y);
+    f = {k, L: 3, x: 0, w: d.w, h: d.h, build: 1, guests: [], persons: [], film: 0, ...f};
+    paintFacility(c, f, 0, 0, w, h, {night, lit: night ? 1 : 0, vacant: !!f.vac, lod: true, time: 1.3});
+    c.restore(); c.fillStyle = '#9aa6bf'; c.font = '7px system-ui'; c.fillText(lbl, x, y - 2);
+  });
+  document.body.appendChild(cv);
+}
+for (const k of priced) {
+  const d = FAC[k], cells = [];
+  for (let v = 0; v < (NV[k] || 3); v++) for (let p = 3; p >= 0; p--) cells.push([{id: idFor(v, NV[k] || 3), price: p, occ: true, guests: d.hotel ? [1] : []}, 'm' + (v + 1) + ' ' + PRICE_NAMES[p].slice(0, 5)]);
+  for (let i = 0; i < cells.length; i += 8) row(k, cells.slice(i, i + 8));
+  if (!d.hotel) row(k, [[{id: 1, price: 1, vac: true, occ: false}, 'vago']]);
+}
+for (const k of plain) { const cells = []; for (let v = 0; v < 6; v++) cells.push([{id: idFor(v, 6)}, 'm' + (v + 1)]); row(k, cells.slice(0, 3)); row(k, cells.slice(3)); }
+</script>

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo · Arranha-Céu</title>
+<style>
+  :root { --bg: #131826; --panel: #1b2236; --line: #2b3552; --txt: #e6ebf7; --mut: #9aa6c4; --acc: #ffd24a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt); font: 14px/1.45 system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: rgba(19,24,38,.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); padding: 10px 16px; }
+  h1 { margin: 0 0 8px; font-size: 18px; } h1 small { color: var(--mut); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chip, .tog, input { background: var(--panel); border: 1px solid var(--line); color: var(--txt); border-radius: 999px; padding: 4px 11px; font: inherit; cursor: pointer; }
+  input { cursor: text; min-width: 170px; } .chip.on, .tog.on { background: var(--acc); color: #222; border-color: var(--acc); }
+  .sep { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+  main { padding: 16px; max-width: 1500px; margin: 0 auto; }
+  section { margin-bottom: 28px; } section h2 { font-size: 15px; margin: 0 0 10px; color: var(--acc); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .card.wide { grid-column: span 2; } @media (max-width: 760px) { .card.wide { grid-column: span 1; } }
+  .stage { background: #0e1220; border-radius: 6px; padding: 6px; overflow-x: auto; display: flex; gap: 8px; align-items: flex-end; }
+  canvas { image-rendering: pixelated; flex: none; }
+  .t { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; } .t b { font-size: 15px; }
+  .star { color: var(--acc); white-space: nowrap; } .meta { color: var(--mut); font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .tag { background: #26304d; border-radius: 4px; padding: 0 6px; font-size: 11px; color: #c9d4f0; } .desc { font-size: 13px; color: #cdd5ea; }
+  .vl { font-size: 11px; color: var(--mut); text-align: center; } .var { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .empty { color: var(--mut); padding: 30px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Catálogo do Arranha-Céu <small id="count"></small></h1>
+  <div class="bar" id="bar"></div>
+</header>
+<main id="main"></main>
+<script src="catalogo-dados.js"></script><script src="js/data.js"></script><script src="js/game.js"></script><script src="js/art.js"></script><script src="js/art-salas.js"></script><script src="js/sons.js"></script><script src="js/sintese.js"></script>
+<script>
+'use strict';
+// Catálogo: mostra, desenhado pelos mesmos painters do jogo e animado, tudo o que se pode construir (salas, elevadores, escadas, túneis, utilidades, transporte),
+// com estrelas, tamanho, custo, características e descrição. Filtros por grupo e estrela, busca, modo noite e unidade ocupada/vaga.
+const $ = s => document.querySelector(s);
+const GROUPS = CATALOGO.grupos;   // grupos, modelos e estados vêm de catalogo-dados.js (npm run catalogo)
+const FLAGS = {noisy: 'barulhenta', tenant: 'aluguel/venda', hotel: 'hotel', commercial: 'comércio', staff: 'equipe', struct: 'estrutural', veh: 'veículos', roof: 'só no topo', underOnly: 'só subsolo', slope: 'tem lado (R)'};
+const money = n => 'R$ ' + n.toLocaleString('pt-BR');
+const state = {night: false, vacant: false, q: '', group: '', star: 0};
+const cards = [];   // {cv, draw, visible}
+
+const mkfac = (k, o = {}) => Object.assign({id: 7 + k.length, k, L: 1, x: 0, w: FAC[k].w, h: FAC[k].h, build: 1, guests: [{}], persons: [], dirty: false, bugs: 0, film: 2, fire: 0, price: 1, sty: 12345, dir: 1, occ: true, lixo: 220, line: 1, truckEta: 0}, o);
+const idFor = (v, n) => { for (let i = 1; ; i++) if (vr({id: i}, n) === v) return i; };
+const scaleFor = w => (w < 80 ? 4 : w < 140 ? 3 : 2);
+
+function facDraw(k, fo, po = {}) {
+  const d = FAC[k], w = ((fo && fo.w) || d.w) * U, h = d.h * FH;
+  return {w, h, draw(c, tm) {
+    const f = mkfac(k, fo), n = po.night !== undefined ? po.night : state.night, ph = ['arrive', 'open', 'open', 'leave', 'none', 'none'][Math.floor(tm / 3) % 6];
+    const opts = {open: d.open ? !n : undefined, night: n, lit: n || state.vacant ? 2 : 3, vacant: state.vacant && (d.tenant), lod: true, time: tm, lvl: .5 + .4 * Math.sin(tm * .3), sun: 1, fill: .5 + .4 * Math.sin(tm * .2),
+      truckP: k === 'lixo' ? (tm * .12) % 1 : undefined, train: k === 'transit' ? {phase: ph, p: ((tm % 3) / 3), next: 40} : null, tdir: 1, tclip: true, traffic: d.veh ? true : undefined, edgeL: k === 'lobby', edgeR: k === 'lobby'};
+    Object.assign(opts, po); if ((po.cutE || po.cutA) && d.open) opts.open = false; if (opts.truckP === 'loop') opts.truckP = (tm * .12) % 1; if (opts.st === 'loop') opts.st = tm % 5;
+    paintFacility(c, f, 0, 0, w, h, opts);
+    if (po.cutE || po.cutA) paintNoUtil(c, 0, 0, w, h, !!po.cutE, !!po.cutA, tm, true);   // o jogo desenha isso por cima (render.js)
+  }};
+}
+function transportDraw(k, tier = 1) {
+  const t = TRANSPORT[k];
+  if (t.mode === 'elev' || t.carlift) {
+    const w = t.w * U * 3 + 16, h = FH * 5, s = {x: 0, w: t.w, lo: 0, hi: 3, k, carlift: !!t.carlift, cars: [{y: 1.5, dir: 1, pax: [1, 2], dwell: 0, full: true, id: 1}, {y: 2.6, dir: -1, pax: [], dwell: 0, full: true, id: 3}, {y: 0, dir: 0, pax: [], dwell: 1, id: 4}], q: {}, off: {}};
+    return {w: t.w * U + 8, h, draw(c, tm) { c.save(); c.translate(4, FH * 4); s.cars[0].y = 1.5 + Math.sin(tm * .8) * 1.3; s.cars[1].y = 2 - Math.sin(tm * .6) * 1.5; const cam = {z: 1};
+      paintShaft(c, s, cam, false); paintShaftDoors(c, s, [0, 1, 2, 3], cam); s.cars.forEach((car, i) => paintCar(c, s, car, i, 3)); paintMachineRoom(c, s, tm, true, cam); paintShaftPit(c, s, cam); c.restore(); }};
+  }
+  return {w: t.w * U + 8, h: FH + 4, draw(c, tm) { c.save(); c.translate(4, 0); paintStairs(c, {x: 0, w: t.w, L: -1 + 0, k}, tm, false, tier); c.restore(); }};
+}
+function variantsOf(k) {
+  const n = CATALOGO.modelos[k]; if (!n) return null;
+  const out = [];
+  for (let v = 0; v < n; v++) out.push({label: 'modelo ' + (v + 1), fo: {id: idFor(v, n), sty: undefined}});
+  return out;
+}
+
+function addCard(parent, k) {
+  const isT = !!TRANSPORT[k] && !FAC[k], d = isT ? TRANSPORT[k] : FAC[k];
+  const card = document.createElement('div'); card.className = 'card'; card.dataset.k = k;
+  const tags = [];
+  if (!isT) for (const f in FLAGS) if (d[f]) tags.push(FLAGS[f]);
+  if (d.svc) tags.push('serviço: ' + (SVC_NAMES[d.svc] || d.svc));
+  if (d.tier) tags.push('transporte nível ' + d.tier);
+  if (d.util) tags.push(d.util.store ? 'reservatório ' + d.util.store.cap : Object.entries(d.util).filter(([a, b]) => typeof b === 'number').map(([a, b]) => (a === 'energia' ? '⚡' : '💧') + b).join(' '));
+  if (d.waste) tags.push(d.waste.process ? 'processa lixo sozinha' : 'guarda ' + d.waste.cap + ' de lixo');
+  if (d.dailyCost) tags.push('manutenção ' + money(d.dailyCost) + '/dia');
+  if (d.prices && d.per) tags.push((d.condo ? 'venda' : 'aluguel') + ' ' + money(d.prices[1]) + (d.per === 'trimestre' ? '/trim.' : d.per ? '/' + d.per : ''));
+  if (d.perCustomer) tags.push(money(d.perCustomer) + ' por cliente');
+  if (d.cap && isT) tags.push('cabine ' + d.cap + ' pessoas'); if (d.maxSpan) tags.push('até ' + d.maxSpan + ' andares');
+  const size = isT ? d.w + ' un.' : d.w + '×' + d.h;
+  card.innerHTML = `<div class="t"><b>${d.label}</b><span class="star">${'★'.repeat(d.star || 1)}</span></div><div class="stage"></div>
+    <div class="meta"><span>${size}</span><span>${money(d.cost || 0)}</span>${(d.open ? `<span>aberto ${d.open[0] / 60}h–${d.open[1] / 60}h</span>` : '')}</div>
+    <div class="meta">${tags.filter(Boolean).map(t => `<span class="tag">${t}</span>`).join('')}</div><div class="desc">${(DESC[k] || '').replace(/</g, '&lt;')}</div>`;
+  const stage = card.querySelector('.stage'); if (k === 'lobby') { stage.style.flexDirection = 'column'; stage.style.alignItems = 'flex-start'; }
+  const items = [];
+  if (isT) { if (TRANSPORT[k].mode === 'elev' || TRANSPORT[k].carlift) items.push({label: '', g: transportDraw(k)}); else for (let t = 0; t < 5; t++) items.push({label: (t + 1) + '★', g: transportDraw(k, t)}); }
+  else {
+    const vs = variantsOf(k);
+    if (vs) for (const v of vs) items.push({label: v.label, g: facDraw(k, v.fo)});
+    else if (k === 'lobby') for (const [lb, th] of [['1 estrela: simples', 0], ['2 estrelas: sofás e plantas', 1], ['3 estrelas: recepção e lambri', 2], ['4 estrelas: mármore e colunas', 3], ['5 estrelas: dourado e fonte', 4]]) items.push({label: lb, g: facDraw(k, {w: 40, L: 0}, {theme: th})});
+    else if (k === 'transit') for (let l = 0; l < LINES.length; l++) items.push({label: 'linha ' + LINES[l].name.toLowerCase(), g: facDraw(k, {line: l})});
+    else items.push({label: k.startsWith('corridor') ? '1★' : '', g: facDraw(k, {})});
+    for (const st of CATALOGO.estados[k] || []) items.push({label: st.label, g: facDraw(k, Object.assign({}, st.fo || {}), st.po || {})});
+    // estados que valem para quase toda sala: sem energia (escurece e mostra o raio), sem água (gota), ponto vago (comércio que fechou) e fila nos pontos
+    if (d.open || d.tenant || d.hotel || d.svc || d.commercial) { items.push({label: 'sem energia', g: facDraw(k, {}, {cutE: true})}); if (USE[k] && USE[k][1]) items.push({label: 'sem água', g: facDraw(k, {}, {cutA: true})}); }
+    if (d.biz) items.push({label: 'ponto vago', g: facDraw(k, {closed: true, occ: false}, {vacant: true})});
+    if (k === 'busstop' || k === 'taxi') items.push({label: 'fila cheia', g: facDraw(k, {rush: 8}, {rushNow: 8})}, {label: 'sem fila', g: facDraw(k, {rush: 0}, {rushNow: 0})});
+  }
+  if (items.length > 2 || (items[0].g.w > 110)) card.classList.add('wide'); if (items.length > 6 || k === 'lobby') card.style.gridColumn = '1 / -1';
+  for (const it of items) {
+    const box = document.createElement('div'); box.className = 'var';
+    const sc = scaleFor(it.g.w), cv = document.createElement('canvas'); cv.width = it.g.w * sc; cv.height = it.g.h * sc; cv.style.width = it.g.w * sc + 'px'; cv.style.height = it.g.h * sc + 'px';
+    box.appendChild(cv); if (it.label) { const l = document.createElement('div'); l.className = 'vl'; l.textContent = it.label; box.appendChild(l); }
+    stage.appendChild(box); cards.push({cv, g: it.g, vis: false, card, sc});
+  }
+  card.dataset.text = (d.label + ' ' + (DESC[k] || '') + ' ' + tags.join(' ')).toLowerCase();
+  card.dataset.star = d.star || 1;
+  parent.appendChild(card);
+}
+
+// ---- pessoas: silhuetas, idades, roupas e ações (os mesmos paintPerson e personTraits do jogo)
+const fakeP = o => Object.assign({id: 1, age: 30, kind: 'visitor', prof: '', stress: 0, st: 'idle', x: 0, step: null, home: null, look: 0, panic: false}, o);
+function personItem(label, o, act, w = 24) {
+  const p = fakeP(o); if (o.walk) { p.st = 'walk'; p.step = {x: 1}; }
+  return {label, g: {w, h: 24, draw(c, tm) { paintPerson(c, p, w / 2 - (act === 'fight' ? 0 : 0), 22, tm, true, act); }}};
+}
+function addPeople(parent) {
+  const card = document.createElement('div'); card.className = 'card wide'; card.style.gridColumn = '1 / -1'; card.dataset.star = 1;
+  card.innerHTML = `<div class="t"><b>Pessoas</b><span class="star">★</span></div><div class="meta"><span class="tag">sorteadas pelo id e pela idade</span></div>
+    <div class="desc">Cada pessoa tem altura, corpo, cabelo, roupa, calçado e acessórios próprios. Aqui estão os tipos, as profissões e o que fazem em cada sala.</div>`;
+  const groups = [
+    ['Idades e corpos', [personItem('criança', {id: 11, age: 8, prof: 'student', walk: 1}), personItem('jovem magro', {id: 4, age: 22, walk: 1}), personItem('adulto', {id: 9, age: 38, walk: 1}), personItem('corpulento', {id: 25, age: 45, walk: 1}), personItem('idoso', {id: 31, age: 74, walk: 1}), personItem('idosa', {id: 18, age: 70, walk: 1})]],
+    ['Cabelos e roupas', Array.from({length: 12}, (_, i) => personItem('id ' + (40 + i), {id: 40 + i, age: 25 + i * 3, walk: 1}))],
+    ['Trabalho', [personItem('escritório', {id: 12, kind: 'worker', prof: 'day', walk: 1}), personItem('terno', {id: 14, kind: 'worker', prof: 'day', walk: 1}), personItem('camareira', {id: 3, kind: 'staff', home: {k: 'housekeeping'}, walk: 1}, null, 36), personItem('segurança', {id: 5, kind: 'staff', home: {k: 'security'}, walk: 1}), personItem('bombeiro', {id: 6, kind: 'firefighter', walk: 1}), personItem('VIP', {id: 7, kind: 'vip', walk: 1}), personItem('hóspede', {id: 21, kind: 'guest', walk: 1})]],
+    ['Estresse', [personItem('calmo', {id: 9, stress: 10, walk: 1}), personItem('irritado', {id: 9, stress: 100, walk: 1}), personItem('furioso', {id: 9, stress: 180, walk: 1})]],
+    ['Ações', [personItem('fugindo do fogo', {id: 9, panic: true, walk: 1}), personItem('brigando', {id: 8, stress: 120}, 'fight'), personItem('sentado comendo', {id: 15, at: {k: 'restaurant'}}, 'sit'), personItem('no cinema', {id: 16, at: {k: 'cinema'}}, 'sit'), personItem('dançando', {id: 17}, 'dance'), personItem('bebendo', {id: 19}, 'drink'), personItem('esperando', {id: 20}, 'wait'), personItem('malhando', {id: 22}, 'gym'), personItem('olhando vitrine', {id: 23}, 'browse')]],
+  ];
+  for (const [name, items] of groups) {
+    const h = document.createElement('div'); h.className = 'meta'; h.textContent = name; card.appendChild(h);
+    const stage = document.createElement('div'); stage.className = 'stage'; card.appendChild(stage);
+    for (const it of items) {
+      const box = document.createElement('div'); box.className = 'var'; const sc = 6;
+      const cv = document.createElement('canvas'); cv.width = it.g.w * sc; cv.height = it.g.h * sc; cv.style.width = it.g.w * sc + 'px'; cv.style.height = it.g.h * sc + 'px';
+      box.appendChild(cv); const l = document.createElement('div'); l.className = 'vl'; l.textContent = it.label; box.appendChild(l); stage.appendChild(box);
+      cards.push({cv, g: it.g, vis: false, card, sc});
+    }
+  }
+  card.dataset.text = 'pessoas silhuetas roupas idades corpos cabelo camareira bombeiro segurança fuga briga';
+  parent.appendChild(card);
+}
+
+// ---- sons: botões para ouvir cada som, vozes grammelot e o gerenciador de mistura (sons.js + sintese.js)
+const SOM_NOMES = {error: 'erro', build: 'construir', ding: 'elevador (ding)', star: 'nova estrela', train: 'metrô chegando', step: 'passos', heli: 'helicóptero', ext: 'extintor', amb: 'ambulância', siren: 'sirene dos bombeiros', boom: 'explosão', thunder: 'trovão', apagao: 'apagão', carro: 'carro passando', onibus: 'ônibus', caminhao: 'caminhão (ré)', buzina: 'buzina', voz: 'voz (grammelot)', murmurio: 'murmúrio da multidão'};
+const MOODS = {chat: 'conversa', grito: 'grito de pânico', briga: 'briga', festa: 'festa', riso: 'riso'};
+function addSounds(parent) {
+  const card = document.createElement('div'); card.className = 'card wide'; card.style.gridColumn = '1 / -1'; card.dataset.star = 1;
+  card.dataset.text = 'sons áudio voz grammelot carro metrô sirene trovão mistura volume';
+  card.innerHTML = `<div class="t"><b>Sons</b><span class="star">★</span></div><div class="desc">Clique para ouvir. Tudo passa pelo gerenciador de mistura: espera entre sons iguais, limite por categoria, prioridade (alerta vence ambiente), abafamento quando há alerta e teto de ${SOM_MAX_TOTAL} sons ao mesmo tempo.</div>
+    <div class="meta" id="snd-vols"></div><div class="meta" id="snd-status"></div>`;
+  const vols = card.querySelector('#snd-vols');
+  for (const [k, n] of [['master', 'Geral'], ...Object.keys(SOM_CATS).map(k => [k, SOM_CATS[k].label])]) {
+    const l = document.createElement('label'); l.innerHTML = n + ' '; const r = document.createElement('input'); r.type = 'range'; r.min = 0; r.max = 1; r.step = .05; r.value = k === 'master' ? Som.mix.master : Som.mix.cats[k];
+    r.oninput = () => Som.mix.setVolume(k, r.value); l.appendChild(r); vols.appendChild(l);
+  }
+  const status = card.querySelector('#snd-status');
+  const upd = () => { const now = performance.now(); Som.mix._purge(now); status.textContent = 'tocando agora: ' + (Som.mix.active.map(a => a.name).join(', ') || 'nada') + (Som.mix.ducked(now) ? ' · alerta ativo: ambiente e vozes abafados' : ''); };
+  setInterval(upd, 250);
+  const btn = (parent2, txt, fn) => { const b = document.createElement('button'); b.className = 'chip'; b.textContent = txt; b.onclick = () => { fn(); upd(); }; parent2.appendChild(b); };
+  const cats = {};
+  for (const k in SONS) (cats[SONS[k].cat] = cats[SONS[k].cat] || []).push(k);
+  for (const c of Object.keys(SOM_CATS)) {
+    const h = document.createElement('div'); h.className = 'meta'; h.textContent = SOM_CATS[c].label + ' (até ' + SOM_CATS[c].max + ' juntos)'; card.appendChild(h);
+    const row = document.createElement('div'); row.className = 'stage'; row.style.flexWrap = 'wrap'; card.appendChild(row);
+    for (const k of cats[c]) {
+      if (k === 'voz') for (const m in MOODS) btn(row, '🗣 ' + MOODS[m], () => Som.play('voz', {mood: m, seed: 1 + Math.floor(Math.random() * 99), near: 1}));
+      else btn(row, SOM_NOMES[k] || k, () => Som.play(k, {near: 1, seed: 7, mood: 'chat'}));
+    }
+  }
+  const h = document.createElement('div'); h.className = 'meta'; h.textContent = 'Teste da mistura'; card.appendChild(h);
+  const row = document.createElement('div'); row.className = 'stage'; card.appendChild(row);
+  btn(row, '🌪 Tudo ao mesmo tempo', () => Object.keys(SONS).forEach((k, i) => setTimeout(() => Som.play(k, {near: 1, seed: i + 3, mood: ['grito', 'briga', 'festa'][i % 3]}), i * 60)));
+  btn(row, '🚨 Sirene + trânsito (abafa o ambiente)', () => { Som.play('siren', {near: 1}); setTimeout(() => { Som.play('carro', {near: 1}); Som.play('onibus', {near: 1}); Som.play('murmurio', {near: 1, seed: 5}); }, 200); });
+  btn(row, '👥 Multidão: 8 vozes', () => { for (let i = 0; i < 8; i++) setTimeout(() => Som.play('voz', {mood: ['chat', 'festa', 'riso'][i % 3], seed: 10 + i, near: 1}), i * 300); });
+  parent.appendChild(card);
+}
+
+function build() {
+  const main = $('#main'); main.innerHTML = ''; cards.length = 0;
+  for (const [name, keys] of GROUPS) {
+    const sec = document.createElement('section'); sec.dataset.group = name; sec.innerHTML = `<h2>${name}</h2>`;
+    const grid = document.createElement('div'); grid.className = 'grid'; sec.appendChild(grid);
+    for (const k of keys) { if (k === '@pessoas') addPeople(grid); else if (k === '@sons') addSounds(grid); else if (FAC[k] || TRANSPORT[k]) addCard(grid, k); }
+    main.appendChild(sec);
+  }
+  const io = new IntersectionObserver(es => { for (const e of es) { const c = cards.find(x => x.cv === e.target); if (c) c.vis = e.isIntersecting; } }, {rootMargin: '120px'});
+  for (const c of cards) io.observe(c.cv);
+  const empty = document.createElement('div'); empty.className = 'empty'; empty.id = 'empty'; empty.textContent = 'Nada encontrado.'; empty.hidden = true; main.appendChild(empty);
+  applyFilters();
+}
+function applyFilters() {
+  let shown = 0;
+  document.querySelectorAll('section').forEach(sec => {
+    let any = false;
+    sec.querySelectorAll('.card').forEach(card => {
+      const ok = (!state.q || card.dataset.text.includes(state.q)) && (!state.star || +card.dataset.star === state.star) && (!state.group || sec.dataset.group === state.group);
+      card.hidden = !ok; if (ok) { any = true; shown++; }
+    });
+    sec.hidden = !any;
+  });
+  $('#empty').hidden = shown > 0; $('#count').textContent = shown + ' itens';
+}
+function bar() {
+  const b = $('#bar'); b.innerHTML = '';
+  const add = (txt, on, fn, cls = 'chip') => { const e = document.createElement('button'); e.className = cls + (on ? ' on' : ''); e.textContent = txt; e.onclick = fn; b.appendChild(e); return e; };
+  const q = document.createElement('input'); q.placeholder = 'Buscar…'; q.oninput = () => { state.q = q.value.trim().toLowerCase(); applyFilters(); }; b.appendChild(q);
+  b.appendChild(Object.assign(document.createElement('span'), {className: 'sep'}));
+  add('Todos', !state.group, () => { state.group = ''; bar(); applyFilters(); });
+  for (const [g] of GROUPS) add(g, state.group === g, () => { state.group = g; bar(); applyFilters(); });
+  b.appendChild(Object.assign(document.createElement('span'), {className: 'sep'}));
+  for (let s = 0; s <= 5; s++) add(s ? '★'.repeat(s) : 'Todas', state.star === s, () => { state.star = s; bar(); applyFilters(); });
+  b.appendChild(Object.assign(document.createElement('span'), {className: 'sep'}));
+  add('🌙 Noite', state.night, () => { state.night = !state.night; bar(); }, 'tog');
+  add('Vago/à venda', state.vacant, () => { state.vacant = !state.vacant; bar(); }, 'tog');
+  const q2 = b.querySelector('input'); if (q2) q2.value = state.q;
+}
+let last = 0;
+function frame(t) {
+  const tm = t / 1000;
+  if (t - last > 45) {   // ~20 quadros por segundo, só o que está na tela
+    last = t;
+    for (const c of cards) if (c.vis && !c.card.hidden) {
+      const x = c.cv.getContext('2d'); x.setTransform(c.sc, 0, 0, c.sc, 0, 0); x.clearRect(0, 0, c.g.w, c.g.h);
+      x.fillStyle = state.night ? '#0b1020' : '#78a8d8'; x.fillRect(0, 0, c.g.w, c.g.h);
+      try { c.g.draw(x, tm); } catch (e) { x.fillStyle = '#f66'; x.fillText('erro', 4, 12); }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+// atalhos pela URL: ?grupo=Comida&noite=1&estrela=3&q=cinema
+{ const u = new URLSearchParams(location.search); state.group = u.get('grupo') || ''; state.night = u.get('noite') === '1'; state.vacant = u.get('vago') === '1'; state.star = +u.get('estrela') || 0; state.q = (u.get('q') || '').toLowerCase(); }
+bar(); build(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

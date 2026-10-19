@@ -1,0 +1,34 @@
+{
+  "name": "arranha-ceu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arranha-Céu: jogo de construir torres (estilo SimTower) em JavaScript puro, sem dependências.",
+  "scripts": {
+    "test": "node tests/run.js",
+    "test:corredores": "node tests/corredores.test.js",
+    "test:bombeiros": "node tests/bombeiros.test.js",
+    "test:elevadores": "node tests/elevadores.test.js",
+    "test:seguranca": "node tests/seguranca.test.js",
+    "test:saves": "node tests/saves.test.js",
+    "test:render": "node tests/render.test.js",
+    "test:requisitos": "node tests/requisitos.test.js",
+    "test:demo": "node tests/demo.test.js",
+    "test:rotas": "node tests/rotas.test.js",
+    "test:local": "node tests/local.test.js",
+    "test:mundo": "node tests/mundo.test.js",
+    "test:desempenho": "node tests/desempenho.test.js",
+    "bench": "node tools/bench.js",
+    "test:inquilinos": "node tests/inquilinos.test.js",
+    "test:comportamento": "node tests/comportamento.test.js",
+    "test:update": "node tests/comportamento.test.js --update",
+    "sim:humor": "node tools/sim-humor.js 3 8",
+    "demo": "node tools/gerar-demo.js",
+    "catalogo": "node tools/gerar-catalogo.js",
+    "serve": "python3 -m http.server 8000",
+    "sim:progressao": "node tools/sim-progressao.js",
+    "sim:jogador": "node tools/sim-jogador.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

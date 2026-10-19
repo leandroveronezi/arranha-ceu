@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Arranha-Céu</title>
+<meta name="description" content="Arranha-Céu: construa uma torre andar por andar, ligue os elevadores e mantenha os inquilinos felizes para ganhar cinco estrelas.">
+<meta name="theme-color" content="#151a28">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="bar">
+    <button id="starsBtn" class="stars" title="Classificação: clique para ver o que falta para a próxima estrela"><span id="stars"></span></button>
+    <div class="when"><span id="clock">06:00</span><span id="date"></span></div>
+    <div class="money"><span id="funds"></span><span id="pop"></span><span id="util" title="Energia e água: consumo / capacidade"></span></div>
+    <div id="speed" role="group" aria-label="Velocidade">
+      <button data-speed="0" title="Pausar (Espaço)">❚❚</button>
+      <button data-speed="1" title="Normal (1)">▶</button>
+      <button data-speed="2" title="Rápido (2)">▶▶</button>
+      <button data-speed="4" title="Mais rápido (3)">▶▶▶</button>
+      <button data-speed="8" title="Muito rápido (4)">⏩</button>
+    </div>
+    <button id="moodBtn" class="iconbtn" title="Humor dos inquilinos: média do prédio e piores unidades"><span id="moodFace">😐</span><small id="moodN"></small></button>
+    <button id="alertBtn" class="iconbtn" title="Alertas, riscos e soluções">🔔<span id="alertN"></span></button>
+    <button id="finBtn" class="iconbtn" title="Finanças">$</button>
+    <button id="menuBtn" class="iconbtn" title="Menu">☰</button>
+  </header>
+  <div id="ticker" aria-live="polite"></div>
+  <div id="stage">
+    <canvas id="view"></canvas>
+    <aside id="mini">
+      <canvas id="minimap" width="150" height="230" aria-label="Minimapa do prédio: clique ou arraste para mover a câmera, roda do mouse para zoom"></canvas>
+      <button id="miniMode" title="Enquadramento do minimapa: prédio / prédio com margem larga" aria-label="Alternar enquadramento do minimapa">⤢</button>
+      <div id="overlays" role="group" aria-label="Visões do mapa (tecla V alterna)">
+        <button data-ov="none" class="on" aria-pressed="true" title="Visão normal">Mapa</button>
+        <button data-ov="eval" aria-pressed="false" title="Humor dos inquilinos e hóspedes">Humor</button>
+        <button data-ov="price" aria-pressed="false" title="Faixas de preço">Aluguel</button>
+        <button data-ov="hotel" aria-pressed="false" title="Limpeza do hotel">Hotel</button>
+        <button data-ov="fire" aria-pressed="false" title="Cobertura contra incêndio: extintores, hidrantes e sprinklers">Fogo</button>
+        <button data-ov="energia" aria-pressed="false" title="Energia: até onde a rede pública e os geradores chegam">⚡ Energia</button>
+        <button data-ov="agua" aria-pressed="false" title="Água: até onde a rede pública, bombas e caixas chegam">💧 Água</button>
+        <button data-ov="sec" aria-pressed="false" title="Cobertura de segurança: postos, seguranças em serviço e câmeras">Segurança</button>
+      </div>
+      <div id="legend" aria-live="polite"></div>
+      <button id="miniToggle" title="Ocultar mapa">▾</button>
+    </aside>
+    <div id="zoom"><button data-z="in" title="Aproximar">+</button><button data-z="out" title="Afastar">−</button></div>
+    <div id="notes" aria-live="polite"></div>
+    <div id="hint"></div>
+    <div id="tip" role="tooltip"></div>
+    <div id="previewBar" class="hidden"><span id="previewInfo"></span><button id="previewEnd" class="primary"></button></div>
+  </div>
+  <div id="toolopts"></div>
+  <nav id="toolbar"></nav>
+  <div id="flyout" class="hidden"></div>
+  <div id="modal" class="hidden"><div id="panel"></div></div>
+</div>
+<div id="title" class="hidden" role="dialog" aria-label="Menu principal"></div>
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+<script src="js/art.js"></script>
+<script src="js/art-salas.js"></script>
+<script src="js/render.js"></script>
+<script src="js/saves.js"></script>
+<script src="js/sons.js"></script>
+<script src="js/sintese.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/cheats.js"></script>
+<script src="js/demo-torre.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>Prévia geral das salas</title>
+<!-- Todas as salas lado a lado (utilidades, cinema, saguão...). ?noite=1, ?t=segundos (animação), ?k=cinema,caixa (só essas). Sem abrir o jogo: google-chrome --headless=new --allow-file-access-from-files --screenshot=out.png --window-size=1500,900 "file://$PWD/tools/previa-geral.html?k=cinema,caixa" -->
+<body style="margin:0;background:#303844">
+<canvas id="c" width="1500" height="1300"></canvas>
+<script src="../js/data.js"></script>
+<script src="../js/game.js"></script>
+<script src="../js/art.js"></script>
+<script src="../js/art-salas.js"></script>
+<script>
+const q = new URLSearchParams(location.search), T = +(q.get('t') || 3.2), night = q.get('noite') === '1', only = q.get('k'), luz = q.get('luz');   // luz=0: sem ninguém dentro; luz=tv: apagou a luz e a TV ficou ligada
+const c = document.getElementById('c').getContext('2d'); c.scale(2, 2);
+const mk = (k, L, x, o = {}) => Object.assign({id: 7, k, L, x, w: FAC[k].w, h: FAC[k].h, build: 1, guests: [], persons: [], dirty: false, bugs: 0, film: 2, fire: 0, price: 1, sty: 12345, dir: 1, occ: true, lixo: 80}, o);
+let X = 4, Y = 4, rowMax = 0;
+const keys = (only ? only.split(',') : Object.keys(FAC)).filter(k => !k.startsWith('tunnel') && !k.startsWith('corridor') && !['ruin','lobby'].includes(k));
+for (const k of keys) {
+  const w = FAC[k].w * 8, h = FAC[k].h * 36;
+  if (X + w > 735) { X = 4; Y += rowMax + 16; rowMax = 0; }
+  rowMax = Math.max(rowMax, h);
+  const f = mk(k, 1, 0, {id: 7 + X + Y, guests: FAC[k].hotel ? [{}] : []});
+  c.save(); c.translate(X, Y); paintFacility(c, f, 0, 0, w, h, {night, lit: luz === '0' || luz === 'tv' ? 0 : 2, dark: luz === 'tv', vacant: false, lod: true, time: T, lvl: .5, sun: 1, fill: .5}); c.restore();
+  c.fillStyle = '#fff'; c.font = '7px system-ui'; c.fillText(k, X, Y + h + 8);
+  X += w + 6;
+}
+</script>

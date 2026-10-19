@@ -1,0 +1,774 @@
+{
+ "constantes": {
+  "K": {
+   "STAIR_COST": 3,
+   "ESC_COST": 2,
+   "WALK_COST": 0.12,
+   "QUEUE_COST": 2.2,
+   "WALK_SPEED": 6,
+   "ELEV_BASE": 1.5,
+   "ELEV_FLOOR": 0.2,
+   "EXPR_BASE": 2,
+   "EXPR_FLOOR": 0.05,
+   "COST_PER_SEC": 0.6,
+   "MIN_PER_SEC": 4,
+   "SAVE_VERSION": 4
+  },
+  "CORR": {
+   "range": 12,
+   "spreadPlain": 0.25,
+   "spreadSpr": 0.05,
+   "sprSlow": 2,
+   "sprContain": 1.35,
+   "sprIgnition": 0.4,
+   "camFight": 0.5,
+   "camTheft": 0.5,
+   "extEvery": 10,
+   "extChance": 0.6,
+   "extRefill": 1000,
+   "extMax": 1.3,
+   "rebuildMult": 0.6
+  },
+  "TRUCK": {
+   "cost": 50000,
+   "callAt": 1.1,
+   "eta": 12,
+   "trucks": 2,
+   "crew": 4,
+   "speed": 5,
+   "fightSec": 4,
+   "maxStay": 400,
+   "backup": 1.6
+  },
+  "SEC": {
+   "floors": 6,
+   "reach": 40,
+   "fastSec": 20,
+   "costPerSec": 0.6
+  },
+  "THEFT": {
+   "p": 0.004,
+   "stress": 30
+  },
+  "CRIME_W": {
+   "bar": 1.6
+  },
+  "FX_DUR": {
+   "ext": 3.5,
+   "spr": 3,
+   "boom": 2.5,
+   "amb": 10,
+   "thief": 4
+  },
+  "LIMITS": {
+   "shafts": null,
+   "carsPerShaft": 3,
+   "stairsEsc": null,
+   "parkspace": null,
+   "clinic": null,
+   "security": null,
+   "ent": null,
+   "landmark": 1
+  },
+  "MAINT": {
+   "carlift": 12000,
+   "elevator": 10000,
+   "express": 20000,
+   "service": 10000,
+   "escalator": 5000,
+   "parkramp": 10000,
+   "recycling": 50000,
+   "transit": 100000,
+   "housekeeping": 10000,
+   "security": 20000,
+   "lobbyUnit": 100,
+   "corridor": 200,
+   "corridorExt": 500,
+   "corridorSpr": 2000,
+   "corridorHyd": 1000,
+   "corridorCam": 500,
+   "tunnel": 300,
+   "tunnelExt": 750,
+   "tunnelSpr": 3000,
+   "tunnelCam": 750,
+   "tunnelHyd": 1500,
+   "tunnelDown": 400,
+   "tunnelPortal": 800,
+   "tunnelPortal2": 1400
+  },
+  "PROX": {
+   "floorUnits": 8,
+   "neighbor": 0.5
+  },
+  "NOISE": {
+   "range": 16,
+   "loudRange": 24,
+   "loud": [
+    "bar",
+    "party",
+    "cinema",
+    "recycling",
+    "transit",
+    "gerador"
+   ],
+   "perSource": 25,
+   "cap": 60
+  },
+  "INCIDENT": {
+   "cap": 80,
+   "theft": {
+    "mag": 35,
+    "days": 3,
+    "range": 16
+   },
+   "fight": {
+    "mag": 25,
+    "days": 5,
+    "range": 24
+   },
+   "bomb": {
+    "mag": 60,
+    "days": 7,
+    "range": 40
+   },
+   "watch": 10
+  },
+  "NEAR": {
+   "service": {
+    "range": 32,
+    "bonus": 10,
+    "cap": 30
+   },
+   "traffic": {
+    "range": 48,
+    "per": 12,
+    "cap": 25,
+    "quiet": 30
+   },
+   "mood": {
+    "range": 48
+   },
+   "hotel": {
+    "range": 24,
+    "demand": 64,
+    "scale": 150
+   },
+   "visit": {
+    "range": 64,
+    "scale": 1500
+   }
+  },
+  "RIDE": {
+   "metro": 8,
+   "parking": 8,
+   "carBase": 0.15,
+   "carWealth": 0.65,
+   "typeBonus": {
+    "kitnet": -0.1,
+    "penthouse": 0.2
+   }
+  },
+  "TRANSPORT": {
+   "stairs": {
+    "cost": 5000,
+    "star": 1,
+    "w": 8
+   },
+   "escalator": {
+    "cost": 20000,
+    "star": 3,
+    "w": 8
+   },
+   "elevator": {
+    "cost": 200000,
+    "star": 1,
+    "w": 4,
+    "cap": 21,
+    "vmax": 4,
+    "board": 0.6,
+    "maxSpan": 30,
+    "carCost": 50000
+   },
+   "express": {
+    "cost": 400000,
+    "star": 3,
+    "w": 8,
+    "cap": 42,
+    "vmax": 10,
+    "board": 0.9,
+    "maxSpan": 200,
+    "carCost": 100000
+   },
+   "service": {
+    "cost": 150000,
+    "star": 2,
+    "w": 4,
+    "cap": 17,
+    "vmax": 4,
+    "board": 0.6,
+    "maxSpan": 30,
+    "carCost": 50000
+   },
+   "carlift": {
+    "cost": 300000,
+    "star": 4,
+    "w": 8,
+    "cap": 2,
+    "vmax": 3,
+    "board": 0.5,
+    "maxSpan": 16,
+    "carCost": 80000
+   }
+  },
+  "FAC": {
+   "lobby": {
+    "cost": 20000,
+    "star": 1,
+    "w": 4,
+    "h": 1,
+    "struct": true
+   },
+   "corridor": {
+    "cost": 2000,
+    "star": 1,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "plain"
+   },
+   "corridorExt": {
+    "cost": 5000,
+    "star": 1,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "ext"
+   },
+   "corridorSpr": {
+    "cost": 40000,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "spr"
+   },
+   "corridorCam": {
+    "cost": 8000,
+    "star": 1,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "cam"
+   },
+   "corridorHyd": {
+    "cost": 20000,
+    "star": 2,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "hyd"
+   },
+   "office": {
+    "cost": 40000,
+    "star": 1,
+    "w": 8,
+    "h": 1,
+    "pop": 6
+   },
+   "officeEx": {
+    "cost": 90000,
+    "star": 3,
+    "w": 16,
+    "h": 1,
+    "pop": 12
+   },
+   "kitnet": {
+    "cost": 55000,
+    "star": 1,
+    "w": 12,
+    "h": 1,
+    "pop": 2
+   },
+   "condo": {
+    "cost": 80000,
+    "star": 1,
+    "w": 16,
+    "h": 1,
+    "pop": 3
+   },
+   "penthouse": {
+    "cost": 220000,
+    "star": 4,
+    "w": 32,
+    "h": 1,
+    "pop": 5
+   },
+   "fastfood": {
+    "cost": 100000,
+    "star": 1,
+    "w": 16,
+    "h": 1,
+    "cap": 48,
+    "perCustomer": 100
+   },
+   "cafe": {
+    "cost": 50000,
+    "star": 1,
+    "w": 8,
+    "h": 1,
+    "cap": 20,
+    "perCustomer": 100
+   },
+   "coworking": {
+    "cost": 65000,
+    "star": 2,
+    "w": 12,
+    "h": 1,
+    "pop": 8
+   },
+   "mercado": {
+    "cost": 90000,
+    "star": 2,
+    "w": 12,
+    "h": 1,
+    "cap": 30,
+    "perCustomer": 120
+   },
+   "lavanderia": {
+    "cost": 60000,
+    "star": 2,
+    "w": 12,
+    "h": 1,
+    "cap": 14,
+    "perCustomer": 120
+   },
+   "jardim": {
+    "cost": 60000,
+    "star": 2,
+    "w": 16,
+    "h": 1
+   },
+   "academia": {
+    "cost": 80000,
+    "star": 2,
+    "w": 12,
+    "h": 1
+   },
+   "creche": {
+    "cost": 90000,
+    "star": 3,
+    "w": 12,
+    "h": 1
+   },
+   "piscina": {
+    "cost": 250000,
+    "star": 4,
+    "w": 16,
+    "h": 2
+   },
+   "auditorio": {
+    "cost": 400000,
+    "star": 4,
+    "w": 24,
+    "h": 2
+   },
+   "banco": {
+    "cost": 110000,
+    "star": 3,
+    "w": 12,
+    "h": 1,
+    "cap": 16,
+    "perCustomer": 300
+   },
+   "single": {
+    "cost": 20000,
+    "star": 2,
+    "w": 4,
+    "h": 1,
+    "pop": 1
+   },
+   "twin": {
+    "cost": 50000,
+    "star": 3,
+    "w": 8,
+    "h": 1,
+    "pop": 2
+   },
+   "suite": {
+    "cost": 100000,
+    "star": 3,
+    "w": 12,
+    "h": 1,
+    "pop": 2
+   },
+   "housekeeping": {
+    "cost": 50000,
+    "star": 2,
+    "w": 16,
+    "h": 1,
+    "pop": 6
+   },
+   "security": {
+    "cost": 100000,
+    "star": 2,
+    "w": 16,
+    "h": 1,
+    "pop": 6
+   },
+   "bar": {
+    "cost": 120000,
+    "star": 2,
+    "w": 16,
+    "h": 1,
+    "cap": 40,
+    "perCustomer": 180
+   },
+   "restaurant": {
+    "cost": 200000,
+    "star": 3,
+    "w": 24,
+    "h": 1,
+    "cap": 60,
+    "perCustomer": 200
+   },
+   "shop": {
+    "cost": 100000,
+    "star": 3,
+    "w": 12,
+    "h": 1,
+    "cap": 40
+   },
+   "party": {
+    "cost": 200000,
+    "star": 3,
+    "w": 24,
+    "h": 2
+   },
+   "cinema": {
+    "cost": 500000,
+    "star": 3,
+    "w": 32,
+    "h": 2
+   },
+   "clinic": {
+    "cost": 250000,
+    "star": 3,
+    "w": 28,
+    "h": 1
+   },
+   "recycling": {
+    "cost": 500000,
+    "star": 3,
+    "w": 24,
+    "h": 2
+   },
+   "parkspace": {
+    "cost": 3000,
+    "star": 3,
+    "w": 4,
+    "h": 1
+   },
+   "bike": {
+    "cost": 30000,
+    "star": 1,
+    "w": 8,
+    "h": 1
+   },
+   "busstop": {
+    "cost": 120000,
+    "star": 2,
+    "w": 16,
+    "h": 1
+   },
+   "taxi": {
+    "cost": 60000,
+    "star": 2,
+    "w": 8,
+    "h": 1
+   },
+   "heliport": {
+    "cost": 800000,
+    "star": 5,
+    "w": 16,
+    "h": 1
+   },
+   "parkramp": {
+    "cost": 50000,
+    "star": 3,
+    "w": 16,
+    "h": 1
+   },
+   "transit": {
+    "cost": 1000000,
+    "star": 4,
+    "w": 64,
+    "h": 3
+   },
+   "ruin": {
+    "cost": 0,
+    "star": 1,
+    "w": 4,
+    "h": 1
+   },
+   "landmark": {
+    "cost": 3000000,
+    "star": 5,
+    "w": 28,
+    "h": 5,
+    "limit": 1
+   },
+   "tunnel": {
+    "cost": 3000,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "plain"
+   },
+   "tunnelExt": {
+    "cost": 7500,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "ext"
+   },
+   "tunnelSpr": {
+    "cost": 60000,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "spr"
+   },
+   "tunnelCam": {
+    "cost": 12000,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "cam"
+   },
+   "tunnelHyd": {
+    "cost": 30000,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "hyd"
+   },
+   "tunnelDown": {
+    "cost": 25000,
+    "star": 3,
+    "w": 4,
+    "h": 1,
+    "struct": true,
+    "corr": "plain"
+   },
+   "tunnelPortal": {
+    "cost": 150000,
+    "star": 5,
+    "w": 8,
+    "h": 1,
+    "struct": true,
+    "corr": "plain"
+   },
+   "tunnelPortal2": {
+    "cost": 280000,
+    "star": 5,
+    "w": 8,
+    "h": 2,
+    "struct": true,
+    "corr": "plain"
+   },
+   "gerador": {
+    "cost": 120000,
+    "star": 1,
+    "w": 8,
+    "h": 1
+   },
+   "solar": {
+    "cost": 250000,
+    "star": 3,
+    "w": 16,
+    "h": 1
+   },
+   "geradorGas": {
+    "cost": 200000,
+    "star": 4,
+    "w": 8,
+    "h": 1
+   },
+   "bateriaPequena": {
+    "cost": 100000,
+    "star": 2,
+    "w": 4,
+    "h": 1
+   },
+   "bateria": {
+    "cost": 200000,
+    "star": 3,
+    "w": 8,
+    "h": 1
+   },
+   "bateriaGrande": {
+    "cost": 300000,
+    "star": 4,
+    "w": 12,
+    "h": 1
+   },
+   "lixo": {
+    "cost": 90000,
+    "star": 3,
+    "w": 16,
+    "h": 2
+   },
+   "bomba": {
+    "cost": 90000,
+    "star": 1,
+    "w": 8,
+    "h": 1
+   },
+   "bombaMedia": {
+    "cost": 190000,
+    "star": 2,
+    "w": 8,
+    "h": 1
+   },
+   "bombaForte": {
+    "cost": 450000,
+    "star": 4,
+    "w": 16,
+    "h": 1
+   },
+   "bombaRecalque": {
+    "cost": 120000,
+    "star": 3,
+    "w": 8,
+    "h": 1
+   },
+   "caixa": {
+    "cost": 150000,
+    "star": 1,
+    "w": 8,
+    "h": 2
+   },
+   "caixaMedia": {
+    "cost": 380000,
+    "star": 2,
+    "w": 12,
+    "h": 2
+   },
+   "caixaGrande": {
+    "cost": 950000,
+    "star": 4,
+    "w": 16,
+    "h": 3
+   },
+   "caixaTorre": {
+    "cost": 1600000,
+    "star": 5,
+    "w": 16,
+    "h": 3
+   },
+   "tratamento": {
+    "cost": 300000,
+    "star": 4,
+    "w": 16,
+    "h": 1
+   }
+  }
+ },
+ "torre12_3dias": {
+  "pop": 115,
+  "pessoas": 128,
+  "avgEval": 131,
+  "funds": 997660,
+  "ocorrencias": 1,
+  "escadaPct": 41,
+  "viagensPerdidas": 0,
+  "msgs": {
+   "No": 21,
+   "📡": 3,
+   "Ap": 4,
+   "🦹": 1,
+   "📅": 1,
+   "Es": 1,
+   "Fi": 1
+  }
+ },
+ "elevadores_25andares": {
+  "1 cabine(s)": {
+   "pop": 143,
+   "estresse": 34.1,
+   "viagensPerdidas": 42,
+   "maiorFila": 11
+  },
+  "3 cabine(s)": {
+   "pop": 215,
+   "estresse": 16.2,
+   "viagensPerdidas": 0,
+   "maiorFila": 18
+  }
+ },
+ "incendios": {
+  "sem_protecao": {
+   "salvou": true,
+   "segundos": 25.5,
+   "picoDoFogo": 1.6,
+   "gasto": 150,
+   "helicoptero": true,
+   "msgs": {
+    "No": 1,
+    "🚁": 1
+   }
+  },
+  "extintor": {
+   "salvou": true,
+   "segundos": 3.6,
+   "picoDoFogo": 1.1,
+   "gasto": 1,
+   "helicoptero": false,
+   "msgs": {
+    "No": 1,
+    "🧯": 1
+   }
+  },
+  "sprinklers": {
+   "salvou": true,
+   "segundos": 31.5,
+   "picoDoFogo": 1.3,
+   "gasto": 0,
+   "helicoptero": true,
+   "msgs": {
+    "No": 1,
+    "🚿": 1
+   }
+  },
+  "hidrante_e_escada": {
+   "salvou": true,
+   "segundos": 23.1,
+   "picoDoFogo": 1.5,
+   "gasto": 50,
+   "helicoptero": false,
+   "msgs": {
+    "No": 1,
+    "🚒": 2
+   }
+  }
+ },
+ "seguranca_noites": {
+  "sem_nada": {
+   "brigas": 542,
+   "furtos": 30
+  },
+  "camera": {
+   "brigas": 263,
+   "furtos": 23
+  },
+  "posto": {
+   "brigas": 73,
+   "furtos": 10
+  }
+ }
+}
